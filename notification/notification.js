@@ -6,6 +6,9 @@ var PushNotification = {
     },
     serviceWorkerFile: '',
     tagCounter: 0,
+    useServiceWorker: function() {
+        return (typeof this.serviceWorkerFile === 'string') && /.*\.js$/gi.test(this.serviceWorkerFile);
+    },
     supported: function() {
         return "Notification" in window || ("serviceWorker" in navigator && "PushManager" in window);
     },
@@ -116,7 +119,7 @@ var PushNotification = {
             callback(true, hideNotification);
         };
 
-        if (this.serviceWorkerFile) {
+        if (this.useServiceWorker()) {
             if (!options.tag) {
                 this.tagCounter++;
                 options.tag = 'PushNotification-' + Date.now() + '-' + this.tagCounter;
