@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overtime Call</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+</head>
+<body>
+    <div>Message meceived:</div>
+    <div class="result"></div>
+    <button onclick="closePopup()">Close</button>
+<script>
+    var popupParent = null;
+    var domain = `${location.protocol}//${location.host}`;
+    var toUrl = domain;
+    var fromUrl = `${domain}/overtime-call.html`;
+    var SIGNAL = 'OVERTIME_CALL';
+    var ACTIONS = {
+        ENDED: 'ENDED_CALL',
+    };
+
+    function closePopup() {
+        popupParent && popupParent.postMessage({
+            signal: SIGNAL,
+            action: ACTIONS.ENDED,
+            location: fromUrl,
+            timestamp: new Date().getTime(),
+        }, toUrl);
+        window.close();
+    }
+
+    window.addEventListener('message', function(event) {
+        console.log('[onMessage][event] => ', event);
+        if (!(new RegExp(`^https?://${location.host}`, 'gi')).test(event.origin) ||
+            event.data.signal != SIGNAL ||
+            event.data.location != toUrl)
+        {
+            return;
+        }
+        // Save origin window (previous window)
+        popupParent = event.source;
+        // Show info
+        $('.result').html(JSON.stringify(event.data));
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incoming Call</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+</head>
+<body>
+    <div>Message meceived:</div>
+    <div class="result"></div>
+    <button onclick="acceptCall()">Accept Call</button>
+    <button onclick="rejectCall()">Reject Call</button>
+<script>
+    var popupParent = null;
+    var domain = `${location.protocol}//${location.host}`;
+    var toUrl = domain;
+    var fromUrl = `${domain}/incoming-call.html`;
+    var SIGNAL = 'INCOMING_CALL';
+    var ACTIONS = {
+        ACCEPT: 'ACCEPT_CALL',
+        REJECT: 'REJECT_CALL',
+    };
+
+    function acceptCall() {
+        popupParent && popupParent.postMessage({
+            signal: SIGNAL,
+            action: ACTIONS.ACCEPT,
+            location: fromUrl,
+            timestamp: new Date().getTime(),
+        }, toUrl);
+    }
+
+    function rejectCall() {
+        popupParent && popupParent.postMessage({
+            signal: SIGNAL,
+            action: ACTIONS.REJECT,
+            location: fromUrl,
+            timestamp: new Date().getTime(),
+        }, toUrl);
+    }
+
+    window.addEventListener('message', function(event) {
+        console.log('[onMessage][event] => ', event);
+        if (!(new RegExp(`^https?://${location.host}`, 'gi')).test(event.origin) ||
+            event.data.signal != SIGNAL ||
+            event.data.location != toUrl)
+        {
+            return;
+        }
+        // Save origin window (previous window)
+        popupParent = event.source;
+        // Show info
+        $('.result').html(JSON.stringify(event.data));
+    });
+</script>
+</body>
+</html>

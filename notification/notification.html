@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Javascript Notification</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="notification.js"></script>
+    <script src="web-notification.js"></script>
+</head>
+<body>
+    <button class="some-button">Show Notification</button>
+    <div class="postmessage"></div>
+<script>
+    var SIGNS = {
+        INCOMING_CALL: 'INCOMING_CALL',
+        WAITING_CALL: 'WAITING_CALL',
+        OVERTIME_CALL: 'OVERTIME_CALL',
+        ACW_CALL: 'ACW_CALL'
+    };
+    var ACTIONS = {
+        ACCEPT: 'ACCEPT_CALL',
+        REJECT: 'REJECT_CALL',
+        ENDED: 'ENDED_CALL'
+    };
+
+    // navigator.serviceWorker.addEventListener('message', ... ) should work too
+    navigator.serviceWorker.onmessage = function (event) {
+        console.log('[ServiceWorker][OnMessage][event] => ', event);
+        if (!(new RegExp(`^https?://${location.host}`, 'gi')).test(event.origin) ||
+            Object.values(SIGNS).indexOf(event.data.signal) === -1)
+        {
+            console.log('[ServiceWorker][OnMessage] => error')
+            return;
+        }
+        console.log('[ServiceWorker][OnMessage][event] => ', event.data, event);
+        $('.postmessage').html(JSON.stringify(event.data));
+
+        // Process each types
+        // switch (event.data.signal) {
+        //     case SIGNS.INCOMING_CALL:
+        //         $('.result').html(JSON.stringify(event.data));
+        //         if (event.data.action === ACTIONS.ACCEPT) {
+
+        //         } else if(event.data.action === ACTIONS.REJECT) {
+
+        //         }
+        //         break;
+        //     case SIGNS.WAITING_CALL:
+        //         $('.result').html(JSON.stringify(event.data));
+        //         break;
+        //     case SIGNS.OVERTIME_CALL:
+        //         $('.result').html(JSON.stringify(event.data));
+        //         break;
+        //     case SIGNS.ACW_CALL:
+        //         $('.result').html(JSON.stringify(event.data));
+        //         break;
+        // }
+    };
+
+    $(function() {
+        document.querySelector('.some-button').addEventListener('click', function onClick() {
+            PushNotification.registerWorker('service-worker.js').show('Hello World', {
+                badge: "https://picsum.photos/16",
+                data: {
+                    test: 'Testing',
+                    signal: 'INCOMING_CALL'
+                },
+                autoclose: 0, // autoclose (number) the notifications after 3s
+                actions: [
+                    {
+                        action: 'Start',
+                        title: 'Start',
+                        icon: "https://via.placeholder.com/128/ff0000",
+                    },
+                    {
+                        action: 'Stop',
+                        title: 'Stop',
+                        icon: "https://via.placeholder.com/128/ff0000"
+                    }
+                ],
+                onshow: function(event) {
+                    console.log('onshow');
+                },
+                onclick: function(event) {
+                    console.log('onclick', event);
+                    if (window && window.closed) {
+                        return window.open(`${location.protocol}//${location.host}/notification/notification.html`);
+                    }
+                    return window.focus();
+                },
+                onclose: function() {
+                    console.log('onclose');
+                },
+                onerror: function() {
+                    console.log('onerror');
+                }
+            }, function (success, hideNotification) {
+                if (!success) {
+                    window.alert('Unable to show notification: ' + hideNotification.message);
+                    return;
+                }
+                console.log('Success => ', success, hideNotification);
+                // Manually close the notification (you can skip this if you use the autoClose option)
+                // setTimeout(function() {
+                //     console.log('Hiding notification....');
+                //     hideNotification();
+                // }, 5000);
+            });
+        });
+    });
+</script>
+</body>
+</html>

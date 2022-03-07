@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Communication Via PostMessage</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+</head>
+<body>
+    <div>Message meceived:</div>
+    <div class="result"></div>
+    <button onclick="sendMessageIncomingCall()">Test Incoming Call</button>
+    <button onclick="sendMessageWaitingCall()">Test Waiting Call</button>
+    <button onclick="sendMessageOvertimeCall()">Test Overtime Call</button>
+    <button onclick="sendMessageACWCall()">Test ACW Call</button>
+<script>
+    var domain = `${location.protocol}//${location.host}`;
+    var fromUrl = domain;
+    var incommingCallUrl = `${domain}/incoming-call.html`;
+    var waitingCallUrl = `${domain}/waiting-call.html`;
+    var overtimeCallUrl = `${domain}/overtime-call.html`;
+    var acwCallUrl = `${domain}/acw-call.html`;
+    var popupIncomingCall = null;
+    var popupWaitingCall = null;
+    var popupOvertimeCall = null;
+    var popupACWCall = null;
+    var SIGNS = {
+        INCOMING_CALL: 'INCOMING_CALL',
+        WAITING_CALL: 'WAITING_CALL',
+        OVERTIME_CALL: 'OVERTIME_CALL',
+        ACW_CALL: 'ACW_CALL'
+    };
+    var ACTIONS = {
+        ACCEPT: 'ACCEPT_CALL',
+        REJECT: 'REJECT_CALL',
+        ENDED: 'ENDED_CALL'
+    };
+
+    function sendMessageIncomingCall() {
+        if (!popupIncomingCall || popupIncomingCall.closed) {
+            popupIncomingCall = popupCenter(incommingCallUrl, 'IncomingCallWindow');
+            popupIncomingCall.onload = function() {
+                popupIncomingCall.postMessage({
+                    signal: SIGNS.INCOMING_CALL,
+                    location: fromUrl,
+                    data: {
+                        title: 'Incoming Call Title',
+                        message: 'This is the Incoming Call message.',
+                        body: 'This is the Incoming Call body.'
+                    },
+                    timestamp: new Date().getTime(),
+                }, incommingCallUrl);
+            };
+        } else {
+            popupIncomingCall.focus();
+            popupIncomingCall.postMessage({
+                signal: SIGNS.INCOMING_CALL,
+                location: fromUrl,
+                data: {
+                    title: 'Title 1 ',
+                    message: 'Message 1',
+                    body: 'Body 1'
+                },
+                timestamp: new Date().getTime(),
+            }, incommingCallUrl);
+        }
+    }
+
+    function sendMessageWaitingCall() {
+        if (!popupWaitingCall || popupWaitingCall.closed) {
+            popupWaitingCall = popupCenter(waitingCallUrl, 'WaitingCallWindow');
+            popupWaitingCall.onload = function() {
+                popupWaitingCall.postMessage({
+                    signal: SIGNS.WAITING_CALL,
+                    location: fromUrl,
+                    data: {
+                        title: 'Waiting Call Title',
+                        message: 'This is the Waiting Call message.',
+                        body: 'This is the Waiting Call body.'
+                    },
+                    timestamp: new Date().getTime(),
+                }, waitingCallUrl);
+            };
+        } else {
+            popupWaitingCall.focus();
+            popupWaitingCall.postMessage({
+                signal: SIGNS.WAITING_CALL,
+                location: fromUrl,
+                data: {
+                    title: 'Waiting Call Title',
+                    message: 'This is the Waiting Call message.',
+                    body: 'This is the Waiting Call body.'
+                },
+                timestamp: new Date().getTime(),
+            }, waitingCallUrl);
+        }
+    }
+
+    function sendMessageOvertimeCall() {
+        if (!popupOvertimeCall || popupOvertimeCall.closed) {
+            popupOvertimeCall = popupCenter(overtimeCallUrl, 'OvertimeCallWindow');
+            popupOvertimeCall.onload = function() {
+                popupOvertimeCall.postMessage({
+                    signal: SIGNS.OVERTIME_CALL,
+                    location: fromUrl,
+                    data: {
+                        title: 'Overtime Call Title',
+                        message: 'This is the Overtime Call message.',
+                        body: 'This is the Overtime Call body.'
+                    },
+                    timestamp: new Date().getTime(),
+                }, overtimeCallUrl);
+            };
+        } else {
+            popupOvertimeCall.focus();
+            popupOvertimeCall.postMessage({
+                signal: SIGNS.OVERTIME_CALL,
+                location: fromUrl,
+                data: {
+                    title: 'Overtime Call Title',
+                    message: 'This is the Overtime Call message.',
+                    body: 'This is the Overtime Call body.'
+                },
+                timestamp: new Date().getTime(),
+            }, overtimeCallUrl);
+        }
+    }
+
+    function sendMessageACWCall() {
+        if (!popupACWCall || popupACWCall.closed) {
+            popupACWCall = popupCenter(acwCallUrl, 'ACWCallWindow');
+            popupACWCall.onload = function() {
+                popupACWCall.postMessage({
+                    signal: SIGNS.ACW_CALL,
+                    location: fromUrl,
+                    data: {
+                        title: 'ACW Call Title',
+                        message: 'This is the ACW Call message.',
+                        body: 'This is the ACW Call body.'
+                    },
+                    timestamp: new Date().getTime(),
+                }, acwCallUrl);
+            };
+        } else {
+            popupACWCall.focus();
+            popupACWCall.postMessage({
+                signal: SIGNS.ACW_CALL,
+                location: fromUrl,
+                data: {
+                    title: 'ACW Call Title',
+                    message: 'This is the ACW Call message.',
+                    body: 'This is the ACW Call body.'
+                },
+                timestamp: new Date().getTime(),
+            }, acwCallUrl);
+        }
+    }
+
+    function popupCenter(url, windowName, w, h) {
+        var userAgent = navigator.userAgent,
+            isMobile = function() {
+                return /\b(iPhone|iP[ao]d)/.test(userAgent) || /\b(iP[ao]d)/.test(userAgent) || /Android/i.test(userAgent) || /Mobile/i.test(userAgent);
+            },
+            screenX = window.screenX || window.screenLeft,
+            screenY = window.screenY || window.screenTop,
+            outerWidth = window.outerWidth || document.documentElement.clientWidth,
+            outerHeight = window.outerHeight || document.documentElement.clientHeight,
+            wTarget = isMobile() ? null : w || 640,
+            hTarget = isMobile() ? null : h || 320,
+            X = screenX < 0 ? window.screen.width + screenX : screenX,
+            left = X + (outerWidth - wTarget) / 2,
+            top = screenY + (outerHeight - hTarget) / 2,
+            features = [];
+        var newWindow = window.open(url, windowName || 'windowName', `left=${left},top=${top},width=${wTarget},height=${hTarget},popup=yes,scrollbars=on`);
+        if (window.focus) {
+            newWindow.focus();
+        }
+        return newWindow;
+    }
+
+    $(function() {
+        window.addEventListener('message', function(event) {
+            console.log('[onMessage][event] => ', event);
+            if (!(new RegExp(`^https?://${location.host}`, 'gi')).test(event.origin) ||
+                Object.values(SIGNS).indexOf(event.data.signal) === -1 ||
+                [incommingCallUrl, waitingCallUrl, overtimeCallUrl, acwCallUrl].indexOf(event.data.location) === -1)
+            {
+                return;
+            }
+            // Process each types
+            switch (event.data.signal) {
+                case SIGNS.INCOMING_CALL:
+                    $('.result').html(JSON.stringify(event.data));
+                    if (event.data.action === ACTIONS.ACCEPT) {
+
+                    } else if(event.data.action === ACTIONS.REJECT) {
+
+                    }
+                    break;
+                case SIGNS.WAITING_CALL:
+                    $('.result').html(JSON.stringify(event.data));
+                    break;
+                case SIGNS.OVERTIME_CALL:
+                    $('.result').html(JSON.stringify(event.data));
+                    break;
+                case SIGNS.ACW_CALL:
+                    $('.result').html(JSON.stringify(event.data));
+                    break;
+            }
+        }, false);
+    });
+</script>
+</body>
+</html>

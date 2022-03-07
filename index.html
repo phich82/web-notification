@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="connect-streams-min.js"></script>
+    <script type="text/javascript" src="amazon-connect-chat.js"></script>
+    <script type="text/javascript" src="amazon-connect-task.js"></script>
+
+  </head>
+  <!-- Add the call to init() as an onload so it will only run once the page is loaded -->
+  <body>
+    <div id="container-div" style="width: 400px; height: 800px;"></div>
+    <button onclick="doCall()">Call</button>
+    <script type="text/javascript">
+        var containerDiv = document.getElementById("container-div");
+        var ccp = { agent: null };
+
+        function doCall() {
+            var endpoint = connect.Endpoint.byPhoneNumber("+84373850375");
+            var agent = new connect.Agent();
+            // var queueArn = "arn:aws:connect:<REGION>:<ACCOUNT_ID>:instance/<CONNECT_INSTANCE_ID>/queue/<CONNECT_QUEUE_ID>";
+            var queueArn = "arn:aws:connect:ap-northeast-1:846595713239:instance/96e0280c-660b-4802-9e35-712e91555de4";
+            ccp.agent && ccp.agent.connect(endpoint, {
+                queueARN: queueArn,
+                success: function() { console.log("outbound call connected"); },
+                failure: function(err) {
+                    console.log("outbound call connection failed");
+                    console.log(err);
+                }
+            });
+        }
+
+        // initialize the streams api
+        function init() {
+            // initialize the ccp
+            connect.core.initCCP(containerDiv, {
+                ccpUrl: 'https://phatestaws.my.connect.aws/connect/ccp-v2',            // REQUIRED
+                loginPopup: true,               // optional, defaults to `true`
+                loginPopupAutoClose: true,      // optional, defaults to `false`
+                loginOptions: {                 // optional, if provided opens login in new window
+                    autoClose: true,              // optional, defaults to `false`
+                    height: 600,                  // optional, defaults to 578
+                    width: 400,                   // optional, defaults to 433
+                    top: 0,                       // optional, defaults to 0
+                    left: 0                       // optional, defaults to 0
+                },
+                region: "ap-northeast-1",         // REQUIRED for `CHAT`, optional otherwise
+                softphone: {                    // optional, defaults below apply if not provided
+                    allowFramedSoftphone: true,   // optional, defaults to false
+                    disableRingtone: false,       // optional, defaults to false
+                    ringtoneUrl: "./ringtone.mp3" // optional, defaults to CCP’s default ringtone if a falsy value is set
+                },
+                // pageOptions: { //optional
+                //     enableAudioDeviceSettings: true, //optional, defaults to 'false'
+                //     enablePhoneTypeSettings: true //optional, defaults to 'true'
+                // },
+                ccpAckTimeout: 5000, //optional, defaults to 3000 (ms)
+                // ccpSynTimeout: 3000, //optional, defaults to 1000 (ms)
+                // ccpLoadTimeout: 10000 //optional, defaults to 5000 (ms)
+            });
+        }
+        $(function() {
+            init();
+
+            connect.ChatSession.setGlobalConfig({
+                loggerConfig: { // optional, the logging configuration. If omitted, no logging occurs
+                    logger: { // optional, a logger object implementation
+                    debug: (msg) => console.debug(msg), // REQUIRED, can be any function
+                    info: (msg) => console.info(msg), // REQUIRED, can be any function
+                    warn: (msg) => console.warn(msg), // REQUIRED, can be any function
+                    error: (msg) => console.error(msg) // REQUIRED, can be any function
+                    },
+                    level: connect.ChatSession.LogLevel.WARN, // optional, defaults to: `connect.ChatSession.LogLevel.INFO`
+                },
+                region: "ap-northeast-1", // optional, defaults to: "us-west-2"
+            });
+
+            connect.core.onViewContact(function(event) {
+                console.log('[connect][onViewContact] => ', event.contactId);
+            });
+            connect.agent(function(agent) {
+                console.log('[connect][agent] => ', agent.getConfiguration());
+                ccp.agent = agent;
+
+                agent.onRefresh(function(agent) { /* ... */ });
+                agent.onStateChange(function(agentState) {
+                    console.log('[connect][agent][onStateChange] => ', agentState);
+                });
+                agent.onRoutable(function(agent) { /* ... */ });
+                agent.onNotRoutable(function(agent) { /* ... */ });
+                agent.onOffline(function(agent) {
+                    console.log('[connect][agent][onOffline] => ', agent);
+                });
+                agent.onError(function(agent) { /* ... */ });
+                agent.onAfterCallWork(function(agent) {
+                    console.log('[connect][agent][onAfterCallWork] => ', agent);
+                });
+            });
+            connect.contact(function(contact) {
+                console.log('[connect][contact] => ', contact, contact.getType());
+
+                // CHAT
+                if (contact.getType() == connect.ContactType.CHAT) {
+                    contact.onAccepted(async () => {
+                        const cnn = contact.getConnections().find(cnn => cnn.getType() === connect.ConnectionType.AGENT);
+
+                        const agentChatSession = await cnn.getMediaController();
+
+                        agentChatSession.onConnectionEstablished(event => {
+                            const { chatDetails } = event;
+                            console.log('[connect][ChatSession][onConnectionEstablished] => ', event)
+                        });
+                        agentChatSession.onConnectionBroken(event => {
+                            const { chatDetails } = event;
+                            console.log('[connect][ChatSession][onConnectionBroken] => ', chatDetails)
+                        });
+                        agentChatSession.onEnded(event => {
+                            const { chatDetails, data } = event;
+                            console.log('[connect][ChatSession][onEnded] => ', event)
+                        });
+                        agentChatSession.onMessage(event => {
+                            const { chatDetails, data } = event;
+                            console.log('[connect][ChatSession][onMessage] => ', event)
+                            switch (data.ContentType) {
+                                // ...
+                            }
+                        });
+                    });
+                    return;
+                }
+
+                contact.onRefresh(function(contact) { /* ... */ });
+                contact.onIncoming(function(contact) { /* ... */ });
+                contact.onPending(function(contact) { /* ... */ });
+                contact.onConnecting(function(contact) { /* ... */ });
+                contact.onAccepted(function(contact) { /* ... */ });
+                contact.onMissed(function(contact) { /* ... */ });
+                contact.onEnded(function(contact) { /* ... */ });
+                contact.onDestroy(function(contact) { /* ... */ });
+                contact.onACW(function(contact) { /* ... */ });
+                contact.onConnected(function(contact) { /* ... */ });
+            });
+        
+            connect.core.onIframeRetriesExhausted(() => {
+                console.log("[connect][onIframeRetriesExhausted] => We have run out of retries to reload the CCP Iframe");
+            });
+
+            // connect.ChatSession.onConnectionBroken(event => {
+            //     const { chatDetails } = event;
+            //     console.log('[chatSession][onConnectionBroken] => ', event)
+            // });
+            
+            // connect.chatSession.onEnded(event => {
+            //     const { chatDetails } = event;
+            //     console.log('[chatSession][onEnded] => ', event)
+            // });
+            // connect.chatSession.onMessage(event => {
+            //     const { chatDetails } = event;
+            //     console.log('[chatSession][onMessage] => ', event)
+            // });
+            // connect.chatSession.onTyping(event => {
+            //     const { chatDetails } = event;
+            //     console.log('[chatSession][onTyping] => ', event)
+            // });
+        });
+    </script>
+  </body>
+</html>

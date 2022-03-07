@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>jQuery html and css popup</title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+	<link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+	<style type="text/css">
+		.popbg{
+			display: block;
+			position: absolute;
+			background: rgba(255, 255, 255, 0.9);
+			top: 0;
+			bottom: 0;
+			right: 0;
+			left: 0;
+			overflow: auto;
+			display: none;
+		}
+		.popup{
+			display: block;
+			position: absolute;
+			width: 500px;
+			left: 30%;
+			top: 35%;
+			background: #fff;
+			display: none;
+		}
+		.pop-shadow{
+			-webkit-box-shadow: 0 0 40px rgba(0,0,0,.4);
+			box-shadow: 0 0 40px rgba(0,0,0,.4);
+			background: #fff;
+			background-clip: padding-box;
+			border: 1px solid #e5e5e5;
+			border: rgba(0,0,0,0);
+			outline: 0;
+		}
+		.pop-header{
+			background: #efefef;
+			border: #ddd solid 1px;
+			position: relative;
+			display: block;
+		}
+		.pop-header:after{
+			clear:both;
+			height: 0px;
+			display:block;
+			content: "";
+		}
+		.left{
+			float: left;
+		}
+		.right{
+			float: right;
+		}
+		.pop-title{
+			display: block;
+			padding: 10px;
+			font-weight: bold;
+			font-family: 'Roboto', sans-serif;
+		}
+		.pop-control{
+			display: block;
+			padding: 10px;
+		}
+		.close-popup, .min-popup{
+			display: block;
+			font-weight: bold;
+			font-family: arial;
+			cursor: pointer;
+			display: inline-block;
+			color: #999;
+			font-size: 14px;
+            margin-left: 5px;
+            border: 1px solid #cfc9c9;
+            padding: 3px 6px;
+		}
+		.close-popup:hover, .min-popup:hover{
+			color: #444;
+		}
+		.main-content{
+			display: block;
+			font-family: 'Roboto', sans-serif;
+			padding: 5px 10px;
+		}
+		.main-content h1{
+			font-size: 28px;
+		}
+		.main-content p{
+			font-size: 16px;
+		}
+        .anchor-popup {
+            float: right;
+            margin-left: 5px;
+            border: 1px solid grey;
+            background-color: #d5d0d0;
+            padding: 3px;
+            border-radius: 5px;
+        }
+        .anchor-popup:hover {
+            cursor: pointer;
+            background-color: #ece8e8;
+            color: rgb(27, 27, 27);
+        }
+	</style>
+
+	<script type="text/javascript">
+		$(function() {
+			// Show popup
+			$('#showpopup').click(function() {
+				$('.wrap-popup-incoming').show();
+				$('#popWindow').show();
+
+                $(`.anchor-popup[data-type=incoming]`).hide();
+
+				// Enable draggable and align popup to center
+				$('#popWindow').draggable({cursor: "move", handle: '.pop-wrapper'});
+				popalign();
+			});
+
+			// Close Popup
+			$('.close-popup').click(function() {
+                var popupType = $(this).data('type');
+				$(`.wrap-popup-${popupType}`).hide();
+				$(`.popup-${popupType}`).hide();
+                $(`.anchor-popup[data-type=${popupType}]`).hide();
+			});
+
+            $('.min-popup').click(function() {
+                var popupType = $(this).data('type');
+				$(`.wrap-popup-${popupType}`).hide();
+				$(`.popup-${popupType}`).hide();
+                $(`.anchor-popup[data-type="${popupType}"]`).show();
+			});
+
+            $('.anchor-popup').click(function() {
+                var popupType = $(this).data('type');
+				$(this).hide();
+                $(`.wrap-popup-${popupType}`).show();
+                $(`.popup-${popupType}`).show();
+			});
+		});
+
+		$(window).resize(function() {
+			popalign();
+		});
+
+		function popalign() {
+			var winH = $(window).height();
+			var winW = $(window).width();
+			//Set the popup window to center
+			$("#popWindow").css('top',  winH/2-$("#popWindow").height()/2);
+			$("#popWindow").css('left', winW/2-$("#popWindow").width()/2);
+		}
+	</script>
+</head>
+<body>
+	<div class="container">
+		<h2>Popup with drag support using jQuery, HTML and CSS.</h2>
+		<button id="showpopup" class="btn btn-info">Click to pop it up!</button>
+	</div>
+	<!-- POP up background-->
+	<div id="pop-bg" class="popbg wrap-popup-incoming">
+		<div id="popWindow" class="popup pop-shadow popup-incoming">
+			<div class="pop-wrapper">
+				<header>
+					<div class="pop-header" id="pop-drag">
+						<div class="left pop-title">Title</div>
+						<div class="right pop-control">
+							<span class="min-popup" data-type="incoming">&minus;</span>
+							<span class="close-popup" data-type="incoming">X</span>
+						</div>
+					</div>
+				</header>
+				<div class="main-content">
+					<h1>Popup sample</h1>
+					<p>
+						Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+					</p>
+                    <button>Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+    <div class="anchor-popup-container" style="position: fixed; bottom: 0; right: 0;">
+        <div class="anchor-popup" data-type="acw" style="display: none;">ACW</div>
+        <div class="anchor-popup" data-type="overtime" style="display: none;">Overtime</div>
+        <div class="anchor-popup" data-type="waiting" style="display: none;">Waiting</div>
+        <div class="anchor-popup" data-type="incoming" style="display: none;">Incomming</div>
+    </div>
+</body>
+</html>
